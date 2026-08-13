@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# 模型（大文件，不入库）
+models/
+
+# 转录输出（音频+文本产物，按需单独分享）
+outputs/
+*.wav
+
+# 系统
+Thumbs.db
+.DS_Store
