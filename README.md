@@ -72,9 +72,16 @@ Download a `Systran/faster-whisper-*` model from HuggingFace into `models/faster
 (`model.bin`, `config.json`, `tokenizer.json`, `vocabulary.txt` or `.json`).
 
 ```bash
-python -m videosays_local.download_model small     # ~460 MB
-python -m videosays_local.download_model large-v3  # ~2.9 GB, best Chinese accuracy
+python -m videosays_local.download_model small     # ~460 MB  — fastest, readable output
+python -m videosays_local.download_model medium    # ~1.5 GB  — balanced accuracy/speed (recommended)
+python -m videosays_local.download_model large-v3  # ~2.9 GB  — best accuracy (esp. Chinese)
 ```
+
+| Model | Size | Quality | Speed (GPU) | Best for |
+|---|---|---|---|---|
+| `small` | ~460 MB | ★★ readable, jargon slips | ~7× real-time | quick drafts, CPU-only machines |
+| `medium` | ~1.5 GB | ★★★ good balance | ~4× real-time | **default choice** for most use |
+| `large-v3` | ~2.9 GB | ★★★★ best (Chinese/accents) | ~3× real-time | archive-grade transcripts |
 
 > In regions where huggingface.co is unreachable, the mirror
 > `https://hf-mirror.com` (or ModelScope `Systran/faster-whisper-*`) can be used.

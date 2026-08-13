@@ -58,11 +58,12 @@ $cli = "D:\Documents\hermes_work\YWork\videosays-local\transcribe.py"
 
 | 模型 | 位置 | 质量 | 速度（3070Ti CUDA） |
 |---|---|---|---|
-| `large-v3`（默认） | models/ 本地 | ★★★ 中文最好 | ~3x 实时（265s 视频 83s） |
+| `large-v3`（默认） | models/ 本地 | ★★★★ 中文最好 | ~3x 实时（265s 视频 83s） |
+| `medium` | models/ 本地 | ★★★ 均衡 | ~4x 实时 |
 | `small` | models/ 本地 | ★★ 可读但术语错多 | ~7x 实时 |
 
-- medium 网盘缓存**缺 model.bin 不完整**，不要用
-- 命令行 `--model small` 切换；模型按需从本地目录加载
+- `medium` 为均衡档（~1.5GB，ModelScope 完整版已下载到 models/）；命令行 `--model medium` 切换
+- 模型按需从本地目录加载；`python -m videosays_local.download_model <size>` 可随时补下载
 
 ## 术语优化（中文工程视频关键）
 
