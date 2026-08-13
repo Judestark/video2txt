@@ -37,7 +37,10 @@ $cli = "D:\Documents\hermes_work\YWork\videosays-local\transcribe.py"
 # 3) 批量执行（阶段2：跑清单，已完成自动跳过=断点续跑）
 & $py $cli batch "D:\...\outputs\manifest.json" --model large-v3 --out "D:\...\outputs"
 
-# 4) 查看输出缓存
+# 4) 从已有 srt 补生成 docx（不重跑 ASR）
+& $py $cli docx --out "D:\...\outputs"
+
+# 5) 查看输出缓存
 & $py $cli cache --out "D:\...\outputs"
 ```
 
@@ -49,7 +52,7 @@ $cli = "D:\Documents\hermes_work\YWork\videosays-local\transcribe.py"
 1. **解析**：`playlist <链接>` 解析合集/多P全部分P（yt-dlp `--flat-playlist`），列出 `#001 标题 (时长)` 清单
 2. **核对**：把清单展示给用户确认数量无误后才允许执行（**开始任务前人工核对任务量**）
 3. **执行**：用户确认后 `batch manifest.json`，逐条下载+转写，已完成条目自动跳过（幂等，对应云端 30 天复用）
-4. **交付**：每视频输出 `NNN_标题.txt` + `.srt` + `.vtt`
+4. **交付**：每视频输出 `NNN_标题.txt` + `.srt` + `.vtt` + `.docx`
 
 ## 模型选择
 
@@ -97,5 +100,5 @@ $cli = "D:\Documents\hermes_work\YWork\videosays-local\transcribe.py"
 | 轮询 | status 命令 | 同步等待（后台可 notify） |
 | 幂等 | 30 天复用 | 文件缓存跳过 |
 | 批量 | batch links.txt | playlist → 核对 → batch manifest |
-| 格式 | timeline/srt/vtt | txt/srt/vtt |
+| 格式 | timeline/srt/vtt | txt/srt/vtt/docx |
 | 准确率 | 云模型（略高） | large-v3 CUDA 接近，术语靠提示词 |
