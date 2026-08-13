@@ -168,6 +168,7 @@ def transcribe_one(item: dict, out_dir: Path, model: str, force: bool = False) -
     idx = item["idx"]
     title = item.get("title") or f"video_{idx}"
     url = item["url"]
+    model = item.get("model") or model  # 条目级覆盖：manifest 可指定 large-v3
     bvid = bvid_from_url(url)
     ptag = page_tag(url)
     key = f"{bvid}_{ptag}" if ptag else bvid
