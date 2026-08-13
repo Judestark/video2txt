@@ -1,7 +1,7 @@
 ---
 name: videosays-local
-description: 本地视频转文字（免费，零 API 密钥）——yt-dlp 下载音轨 + ffmpeg 转 wav + faster-whisper 本地 ASR（CUDA 加速）。支持单链接转录、Bilibili 合集/多P解析、批量任务（先列清单人工核对任务量再执行）、断点续跑（已完成自动跳过）、输出 txt/srt/vtt。触发词：转录视频、视频转文字、提取字幕、本地转录、bilibili 合集批量转录、video to text、语音转文字。
-version: "1.1.0"
+description: 本地视频转文字（免费，零 API 密钥）——yt-dlp 下载音轨 + ffmpeg 转 wav + faster-whisper 本地 ASR（CUDA 加速）。支持单链接转录、Bilibili 合集/多P解析、批量任务（先列清单人工核对任务量再执行）、断点续跑（已完成自动跳过）、输出 txt/srt/vtt/docx。关键词/触发词：转录视频、视频转文字、提取字幕、语音转文字、本地转录、批量转录、bilibili合集、视频下载转写、video transcription、speech-to-text、ASR、whisper、subtitle extraction、captions、YouTube transcript、TikTok、Douyin、小红书、字幕文件、srt、vtt、docx、AI agent video transcription、video to text。
+version: "1.2.0"
 ---
 
 # videosays-local：本地视频转文字（videosays 免费复刻）
