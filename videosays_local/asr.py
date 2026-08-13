@@ -78,6 +78,8 @@ def main():
     ap.add_argument("--language", default="zh", help="zh/en/auto")
     ap.add_argument("--device", default="auto", help="auto/cpu/cuda")
     ap.add_argument("--compute-type", default="auto", help="auto/int8/float16")
+    ap.add_argument("--cpu-threads", type=int, default=4,
+                    help="CPU 推理线程数（保留办公裕量，默认 4）")
     ap.add_argument("--prompt", default="", help="领域术语提示词（提高术语准确率）")
     args = ap.parse_args()
 
@@ -105,7 +107,8 @@ def main():
     t0 = time.time()
     print(f"[asr] 加载模型 {args.model} (device={args.device}, 首次会自动下载)", flush=True)
     from faster_whisper import WhisperModel
-    model = WhisperModel(model_ref, device=args.device, compute_type=args.compute_type)
+    model = WhisperModel(model_ref, device=args.device, compute_type=args.compute_type,
+                         cpu_threads=args.cpu_threads)
     print(f"[asr] 模型就绪 {time.time()-t0:.0f}s，开始转写...", flush=True)
 
     prompt = args.prompt or ("以下是普通话的讲座、旁白或访谈内容，涉及隧道工程、土木工程、建筑施工、"

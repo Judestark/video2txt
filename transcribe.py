@@ -21,6 +21,7 @@ from pathlib import Path
 
 VERSION = "1.0.0"
 DEFAULT_MODEL = "small"  # 中文 small 够用；追求精度 medium
+CPU_THREADS = 4  # ASR CPU 线程上限（保留办公裕量），可 --cpu-threads 覆盖
 DEFAULT_OUT = Path(__file__).resolve().parent / "outputs"
 
 
@@ -190,7 +191,8 @@ def transcribe_one(item: dict, out_dir: Path, model: str, force: bool = False) -
     print(f"       ASR 转写中（model={model}）...")
     t0 = time.time()
     r = run_py(["-m", "videosays_local.asr", "--wav", str(wav_path),
-                "--model", model, "--out", str(txt_path)])
+                "--model", model, "--out", str(txt_path),
+                "--cpu-threads", str(CPU_THREADS)])
     if r.returncode != 0:
         raise RuntimeError(f"ASR 失败 {title}:\n{r.stderr[-2000:]}")
     print(f"       ✅ {time.time()-t0:.0f}s: {txt_path.name}")
@@ -280,6 +282,7 @@ def run_batch(manifest: Path, out_dir: Path, model: str, force: bool = False, jo
 
 # ---------- main ----------
 def main():
+    global CPU_THREADS
     ap = argparse.ArgumentParser(description="videosays-local 本地视频转文字")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
@@ -288,6 +291,7 @@ def main():
     p_url.add_argument("--model", default=DEFAULT_MODEL)
     p_url.add_argument("--out", default=str(DEFAULT_OUT))
     p_url.add_argument("--force", action="store_true")
+    p_url.add_argument("--cpu-threads", type=int, default=CPU_THREADS)
 
     p_pl = sub.add_parser("playlist", help="阶段1: 解析合集/多P -> 生成清单（人工核对）")
     p_pl.add_argument("url")
@@ -298,6 +302,7 @@ def main():
     p_bt.add_argument("--model", default=DEFAULT_MODEL)
     p_bt.add_argument("--out", default=str(DEFAULT_OUT))
     p_bt.add_argument("--force", action="store_true")
+    p_bt.add_argument("--cpu-threads", type=int, default=CPU_THREADS)
     p_bt.add_argument("--jobs", type=int, default=1,
                       help="并行度: 1=串行; 2=下载2线程+GPU转写2并发(8GB显存); 3=下载3线程+GPU转写3并发")
 
@@ -309,6 +314,8 @@ def main():
     p_docx.add_argument("--all", action="store_true", help="处理输出目录全部 srt")
 
     args = ap.parse_args()
+    if hasattr(args, "cpu_threads") and args.cpu_threads:
+        CPU_THREADS = args.cpu_threads
     out_dir = Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
 
