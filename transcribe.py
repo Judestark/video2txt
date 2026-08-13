@@ -234,25 +234,25 @@ def srt_to_docx(srt_path: Path, out_base: str):
 
 
 # ---------- 批量执行 ----------
-def run_batch(manifest: Path, out_dir: Path, model: str, force: bool = False, jobs: int = 1):
+def run_batch(manifest: Path, out_dir: Path, model: str, force: bool = False, jobs: int = 1, dl_jobs: int = 3):
     from concurrent.futures import ThreadPoolExecutor, as_completed
     items = json.loads(manifest.read_text(encoding="utf-8"))
     done, failed = 0, []
 
+    # 阶段1: 并行下载缺失音轨（网络 IO，不占 CPU/GPU；dl_jobs 默认 3 线程）
+    dl_n = max(1, min(dl_jobs, 6))
+    print(f"--- 并行下载音轨（{dl_n} 线程）---")
+    with ThreadPoolExecutor(max_workers=dl_n) as ex:
+        futs = {ex.submit(download_audio, it, out_dir, force): it for it in items}
+        for f in as_completed(futs):
+            it = futs[f]
+            try:
+                f.result()
+            except Exception as e:
+                print(f"  ❌ [dl {it['idx']}] {e}")
+                failed.append((it["idx"], str(e)))
+    # 阶段2: 转写（jobs=1 默认单进程，GPU 裕量；可 --jobs 2 双并发）
     if jobs > 1:
-        # 阶段1: 并行下载缺失音轨（网络 IO，3 并发上限防反爬）
-        dl_n = min(jobs, 3)
-        print(f"--- 并行下载音轨（{dl_n} 线程）---")
-        with ThreadPoolExecutor(max_workers=dl_n) as ex:
-            futs = {ex.submit(download_audio, it, out_dir, force): it for it in items}
-            for f in as_completed(futs):
-                it = futs[f]
-                try:
-                    f.result()
-                except Exception as e:
-                    print(f"  ❌ [dl {it['idx']}] {e}")
-                    failed.append((it["idx"], str(e)))
-        # 阶段2: 并行转写（GPU 2 并发）
         print(f"--- 并行转写（{jobs} 并发, GPU）---")
         with ThreadPoolExecutor(max_workers=jobs) as ex:
             futs = {ex.submit(transcribe_one, it, out_dir, model, force): it
@@ -267,6 +267,8 @@ def run_batch(manifest: Path, out_dir: Path, model: str, force: bool = False, jo
                     failed.append((it["idx"], str(e)))
     else:
         for it in items:
+            if it["idx"] in [f for f, _ in failed]:
+                continue
             try:
                 transcribe_one(it, out_dir, model, force)
                 done += 1
@@ -303,8 +305,10 @@ def main():
     p_bt.add_argument("--out", default=str(DEFAULT_OUT))
     p_bt.add_argument("--force", action="store_true")
     p_bt.add_argument("--cpu-threads", type=int, default=CPU_THREADS)
+    p_bt.add_argument("--dl-jobs", type=int, default=3,
+                      help="下载并行线程数（网络IO不占CPU/GPU，默认3）")
     p_bt.add_argument("--jobs", type=int, default=1,
-                      help="并行度: 1=串行; 2=下载2线程+GPU转写2并发(8GB显存); 3=下载3线程+GPU转写3并发")
+                      help="GPU转写并发: 1=单进程(留裕量,默认); 2=双进程(更快但占满GPU)")
 
     p_cache = sub.add_parser("cache", help="查看输出缓存")
     p_cache.add_argument("--out", default=str(DEFAULT_OUT))
@@ -342,7 +346,8 @@ def main():
               f"{out_dir / 'manifest.json'} --out {out_dir}")
 
     elif args.cmd == "batch":
-        sys.exit(run_batch(args.manifest, out_dir, args.model, args.force, args.jobs))
+        sys.exit(run_batch(args.manifest, out_dir, args.model, args.force,
+                           args.jobs, args.dl_jobs))
 
     elif args.cmd == "cache":
         files = sorted(out_dir.glob("*.txt"))
